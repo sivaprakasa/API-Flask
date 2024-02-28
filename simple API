@@ -1,0 +1,67 @@
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+books = [
+    {
+        "id" : 1,
+        "title" : "python",
+        "author" : "prakasam"
+    },
+    {
+        "id" : 2,
+        "title" : "java",
+        "author" : "ganesh"
+    },
+    {
+        "id" : 3,
+        "title" : "Go",
+        "author" : "surya"
+    }
+]
+next_id = 4
+
+################### select all book ####################################
+@app.route('/book', methods=['GET'])
+def get_books():
+    return jsonify(books)
+
+################## get the book ########################################
+@app.route('/book/<int:id>', methods = ['GET'])
+def get_book(id):
+    book = next((book for book in books if book['id'] == id),None)
+    if book:
+        return jsonify(book)
+    else:
+        return jsonify({"message" : "Book is not found"}),404
+
+################### post method the book ###############################
+@app.route('/book', methods =['POST'])
+def create_book():
+    global next_id
+    data = request.json
+    new_book = {"id": next_id, "title" :data["title"], "author" : data["author"]}
+    next_id += 1
+    books.append(new_book)
+    return jsonify(new_book), 202
+
+################### put method the book ################################ 
+@app.route('/book/<int:id>', methods = ['PUT'])
+def update_book(id):
+    data = request.json
+    book = next((book for book in books if book['id'] == id), None)
+    if book:
+        book.update(data)
+        return jsonify(book)
+    else:
+        return jsonify({"message":"Book is not found"}), 404
+
+#####################  delete method the book  ########################
+@app.route('/book/<int:id>', methods = ['DELETE'])
+def delete_book(id):
+    global books
+    books = [book for book in books if book['id'] != id]
+    return jsonify({"message" : "Book is deleted"}), 200
+
+if __name__ == '__main__':
+    app.run(debug=True)
